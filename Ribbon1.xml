@@ -1,0 +1,15 @@
+<customUI xmlns="http://schemas.microsoft.com/office/2009/07/customui">
+  <ribbon>
+    <tabs>
+      <tab id="CustomTab" label="User Story Tools">
+        <group id="CustomGroup" label="Similarity Checker">
+          <button id="btnUploadAndCompare"
+                  label="Compare User Stories"
+                  onAction="btnUploadAndCompare_Click"
+                  imageMso="TableInsert"
+                  size="large" />
+        </group>
+      </tab>
+    </tabs>
+  </ribbon>
+</customUI>
