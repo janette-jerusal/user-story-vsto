@@ -1,29 +1,42 @@
-// UserStoryComparer.cs
 using System;
-using System.Collections.Generic;
-using System.Linq;
+using System.Data;
 
-public static class UserStoryComparer
+namespace UserStorySimilarityAddIn
 {
-    public static List<string> Compare(List<string> stories)
+    public static class UserStoryComparer
     {
-        var results = new List<string>();
-        for (int i = 0; i < stories.Count; i++)
+        public static DataTable Compare(DataTable df1, DataTable df2, double threshold = 0.5)
         {
-            string comparison = $"Story {i + 1} is similar to: ";
-            var similar = new List<string>();
+            // Create result table
+            DataTable result = new DataTable();
+            result.Columns.Add("Story1");
+            result.Columns.Add("Story2");
+            result.Columns.Add("Similarity");
 
-            for (int j = 0; j < stories.Count; j++)
+            // Dummy comparison for now
+            foreach (DataRow row1 in df1.Rows)
             {
-                if (i == j) continue;
-                if (stories[i].Split(' ').Intersect(stories[j].Split(' ')).Count() > 2)
+                foreach (DataRow row2 in df2.Rows)
                 {
-                    similar.Add((j + 1).ToString());
+                    string s1 = row1["Desc"].ToString();
+                    string s2 = row2["Desc"].ToString();
+
+                    double similarity = DummySimilarity(s1, s2);
+
+                    if (similarity >= threshold)
+                    {
+                        result.Rows.Add(s1, s2, similarity.ToString("F2"));
+                    }
                 }
             }
-            comparison += string.Join(", ", similar);
-            results.Add(comparison);
+
+            return result;
         }
-        return results;
+
+        // Dummy similarity logic (placeholder)
+        private static double DummySimilarity(string a, string b)
+        {
+            return a.Equals(b, StringComparison.OrdinalIgnoreCase) ? 1.0 : 0.0;
+        }
     }
 }
