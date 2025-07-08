@@ -1,17 +1,8 @@
-using System;
-using Microsoft.Office.Core;
+// ThisAddIn.cs
+using Microsoft.Office.Tools.Ribbon;
 
-namespace UserStorySimilarityAddIn
+public partial class ThisAddIn
 {
-    public partial class ThisAddIn
-    {
-        private void ThisAddIn_Startup(object sender, EventArgs e) { }
-        private void ThisAddIn_Shutdown(object sender, EventArgs e) { }
-
-        protected override IRibbonExtensibility CreateRibbonExtensibilityObject()
-        {
-            return new Ribbon1() as IRibbonExtensibility;
-        }
-    }
+    private void ThisAddIn_Startup(object sender, System.EventArgs e) { }
+    private void ThisAddIn_Shutdown(object sender, System.EventArgs e) { }
 }
-
