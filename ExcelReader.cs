@@ -1,29 +1,18 @@
-using System;
+// ExcelReader.cs
 using System.Collections.Generic;
-using System.IO;
-using OfficeOpenXml;
+using Excel = Microsoft.Office.Interop.Excel;
 
-namespace UserStorySimilarityAddIn
+public static class ExcelReader
 {
-    public static class ExcelReader
+    public static List<string> ReadUserStories(Excel.Worksheet worksheet)
     {
-        public static List<(string ID, string Desc)> ReadUserStories(string filePath)
+        var stories = new List<string>();
+        int row = 1;
+        while (worksheet.Cells[row, 1].Value2 != null)
         {
-            ExcelPackage.LicenseContext = LicenseContext.NonCommercial;
-            var list = new List<(string ID, string Desc)>();
-            using (var pkg = new ExcelPackage(new FileInfo(filePath)))
-            {
-                var ws = pkg.Workbook.Worksheets[0];
-                int rows = ws.Dimension.End.Row;
-                for (int r = 2; r <= rows; r++)
-                {
-                    var id = ws.Cells[r, 1].Text;
-                    var desc = ws.Cells[r, 2].Text;
-                    if (!string.IsNullOrWhiteSpace(id) && !string.IsNullOrWhiteSpace(desc))
-                        list.Add((id, desc));
-                }
-            }
-            return list;
+            stories.Add(worksheet.Cells[row, 1].Value2.ToString());
+            row++;
         }
+        return stories;
     }
 }
