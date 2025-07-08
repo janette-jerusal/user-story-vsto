@@ -6,16 +6,22 @@ using Excel = Microsoft.Office.Interop.Excel;
 
 namespace UserStorySimilarityAddIn
 {
-    public partial class Ribbon1
+    public partial class Ribbon1 : RibbonBase
     {
-        private void Ribbon1_Load(object sender, RibbonUIEventArgs e) { }
+        public Ribbon1(RibbonFactory factory) : base(factory)
+        {
+            InitializeComponent();
+        }
+
+        private void Ribbon1_Load(object sender, RibbonUIEventArgs e)
+        {
+        }
 
         private void compareButton_Click(object sender, RibbonControlEventArgs e)
         {
             try
             {
-                var app = Globals.ThisAddIn.Application;
-                var workbook = app.ActiveWorkbook;
+                Excel.Workbook workbook = Globals.ThisAddIn.Application.ActiveWorkbook;
                 var sheets = workbook.Sheets;
 
                 if (sheets.Count < 2)
@@ -24,13 +30,20 @@ namespace UserStorySimilarityAddIn
                     return;
                 }
 
-                var df1 = ExcelReader.ReadSheetToDataTable(sheets[1]);
-                var df2 = ExcelReader.ReadSheetToDataTable(sheets[2]);
+                Excel.Worksheet sheet1 = (Excel.Worksheet)sheets[1];
+                Excel.Worksheet sheet2 = (Excel.Worksheet)sheets[2];
 
-                var result = UserStoryComparer.CompareUserStories(df1, df2, 0.5);
+                DataTable df1 = ExcelReader.ReadSheetToDataTable(sheet1);
+                DataTable df2 = ExcelReader.ReadSheetToDataTable(sheet2);
 
-                ExcelWriter.WriteDataTableToSheet(result, sheets.Add());
-                MessageBox.Show("Comparison complete!");
+                DataTable result = UserStoryComparer.CompareUserStories(df1, df2, 0.5); // Change threshold if needed
+
+                Excel.Worksheet resultSheet = (Excel.Worksheet)sheets.Add();
+                resultSheet.Name = "Similarity Results";
+
+                ExcelWriter.WriteDataTableToSheet(result, resultSheet);
+
+                MessageBox.Show("Comparison complete. Results written to new sheet.");
             }
             catch (Exception ex)
             {
