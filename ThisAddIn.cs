@@ -9,14 +9,14 @@ namespace UserStorySimilarityAddIn
         protected override Office.IRibbonExtensibility CreateRibbonExtensibilityObject()
         {
             return Globals.Factory.GetRibbonFactory().CreateRibbonManager(
-                new IRibbonExtension[] { new Ribbon1() });
+                new IRibbonExtension[] { new Ribbon1(Globals.Factory.GetRibbonFactory()) });
         }
 
-        private void ThisAddIn_Startup(object sender, System.EventArgs e)
+        private void ThisAddIn_Startup(object sender, EventArgs e)
         {
         }
 
-        private void ThisAddIn_Shutdown(object sender, System.EventArgs e)
+        private void ThisAddIn_Shutdown(object sender, EventArgs e)
         {
         }
 
@@ -24,11 +24,10 @@ namespace UserStorySimilarityAddIn
 
         private void InternalStartup()
         {
-            this.Startup += new System.EventHandler(ThisAddIn_Startup);
-            this.Shutdown += new System.EventHandler(ThisAddIn_Shutdown);
+            this.Startup += new EventHandler(ThisAddIn_Startup);
+            this.Shutdown += new EventHandler(ThisAddIn_Shutdown);
         }
 
         #endregion
     }
 }
-
