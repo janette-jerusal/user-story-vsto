@@ -1,36 +1,56 @@
 using System;
-using System.Diagnostics;
-using System.Windows.Forms;
+using System.Data;
 using Microsoft.Office.Tools.Ribbon;
-using System.Collections.Generic;
+using Excel = Microsoft.Office.Interop.Excel;
+using Office = Microsoft.Office.Core;
 
 namespace UserStorySimilarityAddIn
 {
-    public partial class Ribbon1 : RibbonBase
+    public partial class Ribbon1 : OfficeRibbon, Office.IRibbonExtensibility
     {
-        private void btnUploadAndCompare_Click(object sender, RibbonControlEventArgs e)
+        private Office.IRibbonUI ribbon;
+
+        private void Ribbon1_Load(object sender, RibbonUIEventArgs e) { }
+
+        public void OnCompareClick(Office.IRibbonControl control)
         {
-            try
-            {
-                using (var dlg = new OpenFileDialog { Filter = "Excel Files|*.xlsx", Multiselect = true })
-                {
-                    if (dlg.ShowDialog() == DialogResult.OK && dlg.FileNames.Length == 2)
-                    {
-                        var df1 = ExcelReader.ReadUserStories(dlg.FileNames[0]);
-                        var df2 = ExcelReader.ReadUserStories(dlg.FileNames[1]);
-                        var results = UserStoryComparer.CompareDataFrames(df1, df2, 0.75);
-                        ExcelWriter.WriteResultsToNewSheet(results);
-                        MessageBox.Show("Done! Check the new worksheet.", "Success");
-                    }
-                    else
-                        MessageBox.Show("Please select exactly two .xlsx files.", "Oops");
-                }
-            }
-            catch (Exception ex)
-            {
-                Debug.WriteLine(ex);
-                MessageBox.Show($"Error: {ex.Message}", "Error");
-            }
+            var ws = Globals.ThisAddIn.Application.ActiveSheet as Excel.Worksheet;
+            var used = ws.UsedRange;
+            var dt1 = new DataTable();
+            var dt2 = new DataTable();
+
+            dt1.Columns.Add("ID");
+            dt1.Columns.Add("Desc");
+            dt2.Columns.Add("ID");
+            dt2.Columns.Add("Desc");
+
+            int rows = used.Rows.Count;
+            int mid = rows / 2;
+
+            for (int i = 2; i <= mid; i++)
+                dt1.Rows.Add(
+                    (used.Cells[i, 1] as Excel.Range)?.Text?.ToString() ?? "",
+                    (used.Cells[i, 2] as Excel.Range)?.Text?.ToString() ?? ""
+                );
+
+            for (int i = mid + 1; i <= rows; i++)
+                dt2.Rows.Add(
+                    (used.Cells[i, 1] as Excel.Range)?.Text?.ToString() ?? "",
+                    (used.Cells[i, 2] as Excel.Range)?.Text?.ToString() ?? ""
+                );
+
+            var result = UserStoryComparer.CompareUserStories(dt1, dt2, 0.75);
+
+            var ns = Globals.ThisAddIn.Application.Worksheets.Add();
+            ns.Name = "Similarity Results";
+
+            for (int c = 0; c < result.Columns.Count; c++)
+                ns.Cells[1, c + 1] = result.Columns[c].ColumnName;
+
+            for (int r = 0; r < result.Rows.Count; r++)
+                for (int c = 0; c < result.Columns.Count; c++)
+                    ns.Cells[r + 2, c + 1] = result.Rows[r][c]?.ToString();
         }
     }
 }
+
