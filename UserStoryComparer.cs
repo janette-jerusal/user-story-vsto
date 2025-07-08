@@ -1,49 +1,29 @@
+// UserStoryComparer.cs
 using System;
-using System.Data;
+using System.Collections.Generic;
 using System.Linq;
-using Accord.MachineLearning.Text;
-using Accord.Math.Distances;
 
-namespace UserStorySimilarityAddIn
+public static class UserStoryComparer
 {
-    public static class UserStoryComparer
+    public static List<string> Compare(List<string> stories)
     {
-        public static DataTable CompareUserStories(DataTable df1, DataTable df2, double threshold)
+        var results = new List<string>();
+        for (int i = 0; i < stories.Count; i++)
         {
-            var combined = df1.Rows.Cast<DataRow>().Select(r => r["Desc"].ToString())
-                          .Concat(df2.Rows.Cast<DataRow>().Select(r => r["Desc"].ToString()))
-                          .ToArray();
+            string comparison = $"Story {i + 1} is similar to: ";
+            var similar = new List<string>();
 
-            var tfidf = new TfIdfVectorizer().Learn(combined);
-            var vectors = combined.Select(s => tfidf.Transform(s)).ToArray();
-
-            int len1 = df1.Rows.Count;
-            int len2 = df2.Rows.Count;
-            var results = new DataTable();
-
-            results.Columns.Add("Story A ID");
-            results.Columns.Add("Story A Desc");
-            results.Columns.Add("Story B ID");
-            results.Columns.Add("Story B Desc");
-            results.Columns.Add("Similarity Score");
-
-            var cosine = new Cosine();
-
-            for (int i = 0; i < len1; i++)
-                for (int j = 0; j < len2; j++)
+            for (int j = 0; j < stories.Count; j++)
+            {
+                if (i == j) continue;
+                if (stories[i].Split(' ').Intersect(stories[j].Split(' ')).Count() > 2)
                 {
-                    double sim = 1.0 - cosine.Distance(vectors[i], vectors[len1 + j]);
-                    if (sim >= threshold)
-                    {
-                        results.Rows.Add(
-                            df1.Rows[i]["ID"], df1.Rows[i]["Desc"],
-                            df2.Rows[j]["ID"], df2.Rows[j]["Desc"],
-                            Math.Round(sim, 3)
-                        );
-                    }
+                    similar.Add((j + 1).ToString());
                 }
-
-            return results;
+            }
+            comparison += string.Join(", ", similar);
+            results.Add(comparison);
         }
+        return results;
     }
 }
