@@ -1,9 +1,5 @@
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using Microsoft.Office.Tools.Excel;
-using Excel = Microsoft.Office.Interop.Excel;
+using Microsoft.Office.Tools.Ribbon;
 using Office = Microsoft.Office.Core;
 
 namespace UserStorySimilarityAddIn
@@ -12,7 +8,8 @@ namespace UserStorySimilarityAddIn
     {
         protected override Office.IRibbonExtensibility CreateRibbonExtensibilityObject()
         {
-            return new Ribbon1(Globals.Factory.GetRibbonFactory());
+            return Globals.Factory.GetRibbonFactory().CreateRibbonManager(
+                new IRibbonExtension[] { new Ribbon1() });
         }
 
         private void ThisAddIn_Startup(object sender, System.EventArgs e)
@@ -30,11 +27,6 @@ namespace UserStorySimilarityAddIn
             this.Startup += new System.EventHandler(ThisAddIn_Startup);
             this.Shutdown += new System.EventHandler(ThisAddIn_Shutdown);
         }
-
-        #endregion
-    }
-}
-
 
         #endregion
     }
