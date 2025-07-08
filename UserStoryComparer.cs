@@ -1,47 +1,49 @@
 using System;
-using System.Collections.Generic;
+using System.Data;
 using System.Linq;
+using Accord.MachineLearning.Text;
+using Accord.Math.Distances;
 
 namespace UserStorySimilarityAddIn
 {
     public static class UserStoryComparer
     {
-        public static List<(string idA, string idB, double score)> CompareDataFrames(
-            List<(string ID, string Desc)> df1,
-            List<(string ID, string Desc)> df2,
-            double threshold)
+        public static DataTable CompareUserStories(DataTable df1, DataTable df2, double threshold)
         {
-            var results = new List<(string, string, double)>();
-            foreach (var a in df1)
-                foreach (var b in df2)
+            var combined = df1.Rows.Cast<DataRow>().Select(r => r["Desc"].ToString())
+                          .Concat(df2.Rows.Cast<DataRow>().Select(r => r["Desc"].ToString()))
+                          .ToArray();
+
+            var tfidf = new TfIdfVectorizer().Learn(combined);
+            var vectors = combined.Select(s => tfidf.Transform(s)).ToArray();
+
+            int len1 = df1.Rows.Count;
+            int len2 = df2.Rows.Count;
+            var results = new DataTable();
+
+            results.Columns.Add("Story A ID");
+            results.Columns.Add("Story A Desc");
+            results.Columns.Add("Story B ID");
+            results.Columns.Add("Story B Desc");
+            results.Columns.Add("Similarity Score");
+
+            var cosine = new Cosine();
+
+            for (int i = 0; i < len1; i++)
+                for (int j = 0; j < len2; j++)
                 {
-                    double sim = ComputeSimilarity(a.Desc, b.Desc);
+                    double sim = 1.0 - cosine.Distance(vectors[i], vectors[len1 + j]);
                     if (sim >= threshold)
-                        results.Add((a.ID, b.ID, Math.Round(sim, 3)));
+                    {
+                        results.Rows.Add(
+                            df1.Rows[i]["ID"], df1.Rows[i]["Desc"],
+                            df2.Rows[j]["ID"], df2.Rows[j]["Desc"],
+                            Math.Round(sim, 3)
+                        );
+                    }
                 }
+
             return results;
-        }
-
-        public static double ComputeSimilarity(string t1, string t2)
-        {
-            var v1 = GetVector(t1);
-            var v2 = GetVector(t2);
-            return CosineSimilarity(v1, v2);
-        }
-
-        private static Dictionary<string,int> GetVector(string text) =>
-            text.Split(new[] {' ','.',',',';','!','?'}, StringSplitOptions.RemoveEmptyEntries)
-                .Select(w => w.ToLowerInvariant())
-                .GroupBy(w => w)
-                .ToDictionary(g=>g.Key, g=>g.Count());
-
-        private static double CosineSimilarity(Dictionary<string,int> v1, Dictionary<string,int> v2)
-        {
-            var all = new HashSet<string>(v1.Keys.Concat(v2.Keys));
-            double dot = all.Sum(k => v1.GetValueOrDefault(k) * v2.GetValueOrDefault(k));
-            double mag1 = Math.Sqrt(v1.Values.Sum(x=>x*x));
-            double mag2 = Math.Sqrt(v2.Values.Sum(x=>x*x));
-            return (mag1*mag2 == 0) ? 0 : dot/(mag1*mag2);
         }
     }
 }
