@@ -1,5 +1,6 @@
 using System;
-using Microsoft.Office.Tools;
+using System.Windows.Forms;
+using Microsoft.Office.Tools.Excel;
 
 namespace UserStorySimilarityAddIn
 {
@@ -7,10 +8,12 @@ namespace UserStorySimilarityAddIn
     {
         private void ThisAddIn_Startup(object sender, EventArgs e)
         {
+            MessageBox.Show("UserStorySimilarityAddIn Loaded!");
         }
 
         private void ThisAddIn_Shutdown(object sender, EventArgs e)
         {
+            // Cleanup if needed
         }
 
         #region VSTO generated code
@@ -24,3 +27,4 @@ namespace UserStorySimilarityAddIn
         #endregion
     }
 }
+
